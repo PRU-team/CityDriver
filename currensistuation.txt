@@ -1,0 +1,4 @@
+game chưa có ui
+điểm có trong gamemanager rồi nhưng chưa làm các vật phẩm + spamer
+generate tile map còn lỗi chưa có generate theo ý muốn được
+nhan vật người chơi điển kiển được ngang nhưng chưa test được nhanh chậm
