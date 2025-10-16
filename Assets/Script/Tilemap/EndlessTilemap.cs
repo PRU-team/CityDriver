@@ -16,6 +16,20 @@ public class EndlessTilemap : MonoBehaviour
 {
     [Header("Prefabs")]
     public GameObject[] tilePrefabs; // assign chunk prefabs in inspector
+    [Header("Scene Mode")]
+    [Tooltip("If true and there are child GameObjects under this transform, the script will reuse those children as chunks instead of instantiating prefabs.")]
+    public bool preferSceneChildren = true;
+
+    // internal flag used at runtime to know which mode we're in
+    private bool useSceneChildren = false;
+    [Header("Auto-detect")]
+    [Tooltip("If true, when using scene children the script will try to compute tileLength automatically from child bounds.")]
+    public bool autoDetectTileLength = true;
+    [Tooltip("Minimum detected tile length (world units) to avoid zero sizes if bounds can't be determined.")]
+    public float minDetectedTileLength = 0.1f;
+    [Header("Collider")]
+    [Tooltip("If true, when a scene-child chunk is moved during recycle the script will briefly toggle any TilemapCollider2D components to force the physics shapes to update.")]
+    public bool refreshCollidersOnRecycle = true;
 
     [Header("Spawn")]
     public int initialCount = 5; // how many chunks to spawn initially
@@ -32,25 +46,37 @@ public class EndlessTilemap : MonoBehaviour
     {
         scrollDirection = scrollDirection.normalized;
 
-        if (!HasValidPrefabs())
+        // If developer wants to reuse child GameObjects placed in the Scene, prefer that mode.
+        if (preferSceneChildren && transform.childCount > 0)
         {
-            // If no prefabs assigned, try to use existing children as starting pieces (safe fallback).
-            if (transform.childCount > 0)
+            useSceneChildren = true;
+            int count = Mathf.Min(transform.childCount, initialCount);
+            // If requested, try to auto-detect tileLength from child bounds before positioning
+            if (autoDetectTileLength)
             {
-                for (int i = 0; i < transform.childCount && i < initialCount; i++)
+                float detected = ComputeTileLengthFromChildren();
+                if (detected > 0f)
                 {
-                    var child = transform.GetChild(i).gameObject;
-                    Vector3 pos = transform.position - scrollDirection * tileLength * i;
-                    child.transform.position = pos;
-                    pieces.Add(child);
+                    tileLength = Mathf.Max(detected, minDetectedTileLength);
+                    Debug.Log($"EndlessTilemap: auto-detected tileLength = {tileLength}", this);
                 }
-                Debug.LogWarning("EndlessTilemap: no tilePrefabs assigned. Using existing children as chunks. Assign prefabs in the Inspector to enable random spawning.", this);
-            }
-            else
-            {
-                Debug.LogError("EndlessTilemap: tilePrefabs is empty or missing. Please assign chunk prefabs in the Inspector (Tile Prefabs) for EndlessTilemap to spawn map pieces.", this);
             }
 
+            for (int i = 0; i < count; i++)
+            {
+                var child = transform.GetChild(i).gameObject;
+                Vector3 pos = transform.position - scrollDirection * tileLength * i;
+                child.transform.position = pos;
+                pieces.Add(child);
+            }
+            Debug.Log("EndlessTilemap: using existing children as chunks (scene mode)", this);
+            return;
+        }
+
+        // Otherwise fall back to spawning prefabs if available
+        if (!HasValidPrefabs())
+        {
+            Debug.LogError("EndlessTilemap: tilePrefabs is empty or missing and no scene children found. Assign chunk prefabs or add child chunks in the Scene.", this);
             return;
         }
 
@@ -113,6 +139,32 @@ public class EndlessTilemap : MonoBehaviour
 
         Vector3 spawnPos = pieces.Count > 0 ? pieces[pieces.Count - 1].transform.position - scrollDirection * tileLength : transform.position - scrollDirection * tileLength;
 
+        // If we're reusing scene children, just move the first child to the spawn position and re-add it.
+        if (useSceneChildren)
+        {
+            if (first != null)
+            {
+                first.transform.position = spawnPos;
+                // Optionally refresh TilemapCollider2D components in the chunk so physics shapes update
+                if (refreshCollidersOnRecycle)
+                {
+                    var colliders = first.GetComponentsInChildren<UnityEngine.Tilemaps.TilemapCollider2D>(true);
+                    foreach (var c in colliders)
+                    {
+                        // toggle enabled to force physics update
+                        c.enabled = false;
+                    }
+                    foreach (var c in colliders)
+                    {
+                        c.enabled = true;
+                    }
+                }
+                pieces.Add(first);
+            }
+            return;
+        }
+
+        // Otherwise, if we have prefabs, destroy the old and instantiate a new random prefab
         if (HasValidPrefabs())
         {
             GameObject prefab = tilePrefabs[Random.Range(0, tilePrefabs.Length)];
@@ -125,7 +177,7 @@ public class EndlessTilemap : MonoBehaviour
             }
         }
 
-        // Fallback: reuse the first object by moving it to the spawn position and adding back to list
+        // Last-resort fallback: reuse first object by moving it
         if (first != null)
         {
             first.transform.position = spawnPos;
@@ -136,6 +188,46 @@ public class EndlessTilemap : MonoBehaviour
     private bool HasValidPrefabs()
     {
         return tilePrefabs != null && tilePrefabs.Length > 0;
+    }
+
+    // Try to estimate the length of a chunk (world units) along scrollDirection by
+    // computing bounds that encompass all child renderers / tilemaps and projecting
+    // along the scroll axis. Returns 0 if can't determine.
+    private float ComputeTileLengthFromChildren()
+    {
+        if (transform.childCount == 0) return 0f;
+
+        Bounds? bounds = null;
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            var child = transform.GetChild(i);
+            // prefer Tilemap bounds
+            var tm = child.GetComponentInChildren<UnityEngine.Tilemaps.Tilemap>(true);
+            if (tm != null)
+            {
+                var b = tm.localBounds;
+                // localBounds is in local space; convert to world
+                var worldMin = tm.transform.TransformPoint(b.min);
+                var worldMax = tm.transform.TransformPoint(b.max);
+                var wb = new Bounds((worldMin + worldMax) * 0.5f, worldMax - worldMin);
+                if (bounds == null) bounds = wb; else bounds.Value.Encapsulate(wb);
+                continue;
+            }
+
+            // fallback: renderer bounds
+            var rend = child.GetComponentInChildren<Renderer>(true);
+            if (rend != null)
+            {
+                if (bounds == null) bounds = rend.bounds; else bounds.Value.Encapsulate(rend.bounds);
+            }
+        }
+
+        if (bounds == null) return 0f;
+
+        // project the bounds size onto the scrollDirection to get length along that axis
+        Vector3 axis = scrollDirection.normalized;
+        float projected = Mathf.Abs(Vector3.Dot(bounds.Value.size, axis));
+        return projected;
     }
 
     // Optional: allow external callers to force a reset
