@@ -5,7 +5,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [Header("References")]
-    public EndlessTilemap tilemapController;
+    public TilemapScrollDown tilemapController;
     public CarController player;
 
     [Header("Game Settings")]
@@ -25,9 +25,9 @@ public class GameManager : MonoBehaviour
         // Try to auto-assign controllers if developer forgot to set them in the Inspector
         if (tilemapController == null)
         {
-            tilemapController = FindObjectOfType<EndlessTilemap>();
+            tilemapController = FindObjectOfType<TilemapScrollDown>();
             if (tilemapController != null)
-                Debug.Log("GameManager: auto-assigned EndlessTilemap reference.", this);
+                Debug.Log("GameManager: auto-assigned TilemapScrollDown reference.", this);
         }
         if (player == null)
         {
@@ -43,7 +43,7 @@ public class GameManager : MonoBehaviour
         if (tilemapController != null)
             tilemapController.scrollSpeed = currentScrollSpeed;
         else
-            Debug.LogWarning("GameManager.Start: tilemapController is not assigned. Assign it in the Inspector or ensure an EndlessTilemap exists in scene.", this);
+            Debug.LogWarning("GameManager.Start: tilemapController is not assigned. Assign it in the Inspector or ensure a TilemapScrollDown exists in scene.", this);
     }
 
     void Update()
@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
         if (tilemapController != null)
             tilemapController.scrollSpeed = currentScrollSpeed;
         else
-            Debug.LogWarning("GameManager.Update: tilemapController is null. Game will not scroll. Assign the EndlessTilemap reference in the Inspector.", this);
+            Debug.LogWarning("GameManager.Update: tilemapController is null. Game will not scroll. Assign the TilemapScrollDown reference in the Inspector.", this);
 
         UpdateScore();
     }

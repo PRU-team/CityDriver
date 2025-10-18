@@ -357,8 +357,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerClampToRoad
   clampX: 1
-  minX: -2
-  maxX: 2
+  minX: -1.7
+  maxX: 1.7
   clampY: 0
   minY: -10
   maxY: 10
