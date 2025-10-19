@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 3
   tags:
   - Background
+  - Fuel
+  - Heart
+  - Coin
   layers:
   - Default
   - TransparentFX

@@ -7,14 +7,14 @@ public class Obstacle : MonoBehaviour
     public float destroyY = -6f;
 
     [Header("Effects")]
-    public GameObject explosionEffect;   // hiệu ứng nổ (nếu có)
-    public AudioClip hitSound;           // âm thanh va chạm (nếu có)
+    public GameObject explosionEffect;
+    public AudioClip hitSound;
 
     private AudioSource audioSource;
+    private bool hasHit = false;
 
     void Start()
     {
-        // Tạo AudioSource nếu cần
         if (hitSound != null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
@@ -25,37 +25,42 @@ public class Obstacle : MonoBehaviour
 
     void Update()
     {
-        // Di chuyển obstacle xuống
         transform.Translate(Vector3.down * moveSpeed * Time.deltaTime);
-
-        // Xoá khi ra khỏi màn hình
         if (transform.position.y < destroyY)
-        {
             Destroy(gameObject);
-        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (hasHit) return;
+        if (!GameManager.Instance.isPlaying) return;
+
         if (other.CompareTag("Player"))
         {
-            // Hiệu ứng nổ
+            hasHit = true;
+            if (GameManager.Instance.isShieldActive)
+            {
+                GameManager.Instance.isShieldActive = false; // tắt shield
+                Debug.Log("💥 Obstacle hit absorbed by shield!");
+                Destroy(gameObject); // phá obstacle
+                return;
+            }
+
+
             if (explosionEffect != null)
                 Instantiate(explosionEffect, transform.position, Quaternion.identity);
 
-            // Âm thanh va chạm
             if (audioSource != null)
                 audioSource.Play();
 
-            // Gọi GameManager để xử lý game over
-            GameManager.Instance.GameOver();
+            //  Gọi GameManager trừ tim
+            if (GameManager.Instance != null)
+                GameManager.Instance.PlayerHit();
 
-            // Xoá obstacle (sau một chút delay nếu có âm thanh)
-            Destroy(gameObject);
+            Destroy(gameObject, 0.05f);
         }
     }
 
-    // Cho phép thiết lập tốc độ từ script ngoài
     public void SetSpeed(float speed)
     {
         moveSpeed = speed;
