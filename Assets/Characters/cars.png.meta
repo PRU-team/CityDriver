@@ -116,12 +116,12 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 66
-        height: 256
+        y: 196
+        width: 33
+        height: 60
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 0, y: 60, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
@@ -137,10 +137,10 @@ TextureImporter:
       name: cars_1
       rect:
         serializedVersion: 2
-        x: 55
+        x: 126
         y: 0
-        width: 95
-        height: 178
+        width: 36
+        height: 69
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -159,10 +159,10 @@ TextureImporter:
       name: cars_2
       rect:
         serializedVersion: 2
-        x: 125
-        y: 0
-        width: 81
-        height: 169
+        x: 233
+        y: 108
+        width: 28
+        height: 49
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -203,10 +203,10 @@ TextureImporter:
       name: cars_4
       rect:
         serializedVersion: 2
-        x: 372
+        x: 257
         y: 0
-        width: 133
-        height: 151
+        width: 33
+        height: 58
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
