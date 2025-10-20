@@ -7852,29 +7852,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 449cd105ef4094493b95a9bd7e6f17b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
-  mainMenuPanel: {fileID: 1495694224}
-  gameHUDPanel: {fileID: 178601958}
-  pauseMenuPanel: {fileID: 524215622}
-  settingsPanel: {fileID: 1842758699}
-  gameOverPanel: {fileID: 1590213626}
-  playButton: {fileID: 1472546634}
-  settingsButton: {fileID: 273430153}
-  exitButton: {fileID: 1264421280}
-  speedText: {fileID: 850924765}
-  scoreText: {fileID: 1613548062}
-  highScoreText: {fileID: 1401748089}
-  fuelFill: {fileID: 1014563305}
-  pauseButton: {fileID: 1850290608}
-  resumeButton: {fileID: 312100427}
-  restartButton: {fileID: 824204017}
-  mainMenuFromPauseButton: {fileID: 80470878}
-  masterVolumeSlider: {fileID: 303827310}
-  musicVolumeSlider: {fileID: 1200410656}
-  sfxVolumeSlider: {fileID: 88416511}
-  settingsCloseButton: {fileID: 1745125253}
-  finalScoreText: {fileID: 2144943230}
-  playAgainButton: {fileID: 1202022601}
-  mainMenuFromGameOverButton: {fileID: 222732377}
+  mainMenuPanel: {fileID: 0}
+  gameHUDPanel: {fileID: 0}
+  pauseMenuPanel: {fileID: 0}
+  settingsPanel: {fileID: 0}
+  gameOverPanel: {fileID: 0}
+  playButton: {fileID: 0}
+  settingsButton: {fileID: 0}
+  exitButton: {fileID: 0}
+  speedText: {fileID: 0}
+  scoreText: {fileID: 0}
+  highScoreText: {fileID: 0}
+  fuelFill: {fileID: 0}
+  pauseButton: {fileID: 0}
+  heartText: {fileID: 0}
+  fullHeart: {fileID: 0}
+  emptyHeart: {fileID: 0}
+  coinText: {fileID: 0}
+  resumeButton: {fileID: 0}
+  restartButton: {fileID: 0}
+  mainMenuFromPauseButton: {fileID: 0}
+  masterVolumeSlider: {fileID: 0}
+  musicVolumeSlider: {fileID: 0}
+  sfxVolumeSlider: {fileID: 0}
+  settingsCloseButton: {fileID: 0}
+  finalScoreText: {fileID: 0}
+  playAgainButton: {fileID: 0}
+  mainMenuFromGameOverButton: {fileID: 0}
   panelTransitionDuration: 0.3
 --- !u!4 &1635435862
 Transform:
