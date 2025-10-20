@@ -153,4 +153,4 @@ MonoBehaviour:
   moveSpeed: 3
   destroyY: -6
   explosionEffect: {fileID: 0}
-  hitSound: {fileID: 0}
+  hitSound: {fileID: 8300000, guid: 0a7714a3258034fc396062b0db60c403, type: 3}

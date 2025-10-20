@@ -57,7 +57,7 @@ public class Obstacle : MonoBehaviour
             if (GameManager.Instance != null)
                 GameManager.Instance.PlayerHit();
 
-            Destroy(gameObject, 0.05f);
+            Destroy(gameObject, hitSound.length + 0.1f);
         }
     }
 
