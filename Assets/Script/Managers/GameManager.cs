@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Runtime")]
     public bool isPlaying = true;
+    public bool isPaused = false; // Thêm pause state
     private float currentScrollSpeed;
     private float score = 0f;
 
@@ -136,7 +137,15 @@ public class GameManager : MonoBehaviour
     void UpdateScore()
     {
         score += Time.deltaTime * currentScrollSpeed * scoreMultiplier;
+        
+        // Update UI if UIManager exists
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateScore(score);
+            UIManager.Instance.UpdateSpeed(currentScrollSpeed * 10f); // Convert to km/h display
+        }
     }
+    
     public void ActivateShield(float duration)
     {
         isShieldActive = true;
@@ -148,6 +157,7 @@ public class GameManager : MonoBehaviour
         //if (UIManager.Instance != null)
         //    UIManager.Instance.ShowShield(true);
     }
+    
     private void UpdateShieldTimer()
     {
         if (isShieldActive)
@@ -172,8 +182,34 @@ public class GameManager : MonoBehaviour
             tilemapController.scrollSpeed = 0f;
         else
             Debug.LogWarning("GameManager.GameOver: tilemapController is null when trying to stop scrolling.", this);
-
+        
         Debug.Log($" GAME OVER! Final Score: {Mathf.FloorToInt(score)}");
+        
+        // Show Game Over UI
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowGameOver(score);
+        }
+    }
+    
+    /// <summary>
+    /// Pause game - stop scrolling but keep objects active
+    /// </summary>
+    public void PauseGame()
+    {
+        isPaused = true;
+        Time.timeScale = 0f;
+        Debug.Log("GameManager: Game paused");
+    }
+    
+    /// <summary>
+    /// Resume game - restore normal time and scrolling
+    /// </summary>
+    public void ResumeGame()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;
+        Debug.Log("GameManager: Game resumed");
     }
 
     public float GetScore()
