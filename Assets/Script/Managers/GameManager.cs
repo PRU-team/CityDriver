@@ -73,7 +73,13 @@ public class GameManager : MonoBehaviour
     void UpdateScore()
     {
         score += Time.deltaTime * currentScrollSpeed * scoreMultiplier;
-        // Sau này bạn có thể cập nhật UI điểm ở đây
+        
+        // Update UI if UIManager exists
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateScore(score);
+            UIManager.Instance.UpdateSpeed(currentScrollSpeed * 10f); // Convert to km/h display
+        }
     }
 
     public void GameOver()
@@ -84,7 +90,14 @@ public class GameManager : MonoBehaviour
             tilemapController.scrollSpeed = 0f;
         else
             Debug.LogWarning("GameManager.GameOver: tilemapController is null when trying to stop scrolling.", this);
+        
         Debug.Log("Game Over! Final Score: " + Mathf.FloorToInt(score));
+        
+        // Show Game Over UI
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowGameOver(score);
+        }
     }
 
     public float GetScore()
