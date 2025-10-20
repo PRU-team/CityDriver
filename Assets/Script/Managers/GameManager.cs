@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Runtime")]
     public bool isPlaying = true;
+    public bool isPaused = false; // Thêm pause state
     private float currentScrollSpeed;
     private float score = 0f;
 
@@ -98,6 +99,26 @@ public class GameManager : MonoBehaviour
         {
             UIManager.Instance.ShowGameOver(score);
         }
+    }
+    
+    /// <summary>
+    /// Pause game - stop scrolling but keep objects active
+    /// </summary>
+    public void PauseGame()
+    {
+        isPaused = true;
+        Time.timeScale = 0f;
+        Debug.Log("GameManager: Game paused");
+    }
+    
+    /// <summary>
+    /// Resume game - restore normal time and scrolling
+    /// </summary>
+    public void ResumeGame()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;
+        Debug.Log("GameManager: Game resumed");
     }
 
     public float GetScore()

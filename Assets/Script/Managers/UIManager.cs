@@ -90,20 +90,85 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log($"UIManager: Scene loaded - {scene.name}");
         
-        // Delay to ensure all objects are instantiated
-        StartCoroutine(DelayedUIRefresh());
+        // Ensure camera is active after scene load
+        if (CameraManager.Instance != null)
+        {
+            CameraManager.Instance.RefreshCamera();
+        }
+        
+        // Stop all existing coroutines to prevent conflicts
+        StopAllCoroutines();
+        
+        // Force UI refresh with proper timing
+        StartCoroutine(ForceUIRefresh());
     }
     
-    private IEnumerator DelayedUIRefresh()
+    private IEnumerator ForceUIRefresh()
     {
+        Debug.Log("UIManager: Starting ForceUIRefresh...");
+        
+        // Wait for scene to fully load and all objects to be instantiated
+        yield return new WaitForSeconds(0.1f);
+        
+        // Additional wait for end of frame to ensure everything is ready
         yield return new WaitForEndOfFrame();
         
+        // Force refresh all UI references
         RefreshUIReferences();
+        
+        // Initialize UI state for current scene
         InitializeUI();
+        
+        // Setup button listeners
         SetupButtonListeners();
+        
+        // Load audio settings
         LoadAudioSettings();
         
-        Debug.Log("UIManager: UI references refreshed for new scene");
+        Debug.Log("UIManager: ForceUIRefresh completed - All references should be updated");
+        
+        // Log which panels were found for debugging
+        LogFoundPanels();
+    }
+    
+    private void LogFoundPanels()
+    {
+        string currentScene = SceneManager.GetActiveScene().name;
+        Debug.Log($"=== UIManager Panel Status for Scene: {currentScene} ===");
+        
+        // Panel status with detailed info
+        if (mainMenuPanel != null)
+            Debug.Log($"MainMenuPanel: ✅ Found - {mainMenuPanel.name} (Active: {mainMenuPanel.activeInHierarchy})");
+        else
+            Debug.Log("MainMenuPanel: ❌ Missing");
+            
+        if (gameHUDPanel != null)
+            Debug.Log($"GameHUDPanel: ✅ Found - {gameHUDPanel.name} (Active: {gameHUDPanel.activeInHierarchy})");
+        else
+            Debug.Log("GameHUDPanel: ❌ Missing");
+            
+        if (pauseMenuPanel != null)
+            Debug.Log($"PauseMenuPanel: ✅ Found - {pauseMenuPanel.name} (Active: {pauseMenuPanel.activeInHierarchy})");
+        else
+            Debug.Log("PauseMenuPanel: ❌ Missing");
+            
+        if (settingsPanel != null)
+            Debug.Log($"SettingsPanel: ✅ Found - {settingsPanel.name} (Active: {settingsPanel.activeInHierarchy})");
+        else
+            Debug.Log("SettingsPanel: ❌ Missing");
+            
+        if (gameOverPanel != null)
+            Debug.Log($"GameOverPanel: ✅ Found - {gameOverPanel.name} (Active: {gameOverPanel.activeInHierarchy})");
+        else
+            Debug.Log("GameOverPanel: ❌ Missing");
+        
+        // Critical button status for gameplay
+        Debug.Log("=== Critical Button Status ===");
+        Debug.Log($"ResumeButton: {(resumeButton != null ? "✅ Found" : "❌ Missing")}");
+        Debug.Log($"RestartButton: {(restartButton != null ? "✅ Found" : "❌ Missing")}");
+        Debug.Log($"PauseButton: {(pauseButton != null ? "✅ Found" : "❌ Missing")}");
+        Debug.Log($"MainMenuFromPauseButton: {(mainMenuFromPauseButton != null ? "✅ Found" : "❌ Missing")}");
+        Debug.Log("================================");
     }
 
     private void Update()
@@ -456,7 +521,8 @@ public class UIManager : MonoBehaviour
     // Auto-detect và assign UI elements từ scene hiện tại
     private void RefreshUIReferences()
     {
-        Debug.Log("UIManager: Refreshing UI references...");
+        string currentScene = SceneManager.GetActiveScene().name;
+        Debug.Log($"UIManager: Refreshing UI references for scene: {currentScene}");
         int foundCount = 0;
         int totalChecked = 0;
         
@@ -542,34 +608,163 @@ public class UIManager : MonoBehaviour
                 pauseButton = pauseButtonObj.GetComponent<Button>();
         }
         
-        // Find Pause Menu elements
+        // Find Pause Menu elements - Enhanced search
         if (pauseMenuPanel == null)
         {
+            totalChecked++;
+            Debug.Log("UIManager: Searching for PauseMenuPanel...");
+            
+            // Method 1: Direct name search
             GameObject pauseMenuObj = GameObject.Find("PauseMenuPanel");
             if (pauseMenuObj != null)
+            {
                 pauseMenuPanel = pauseMenuObj;
+                foundCount++;
+                Debug.Log($"UIManager: Found PauseMenuPanel by direct search: {pauseMenuObj.name}");
+            }
+            else
+            {
+                Debug.Log("UIManager: PauseMenuPanel not found by direct search");
+                
+                // Method 2: Search all GameObjects for pause menu
+                GameObject[] allObjects = FindObjectsOfType<GameObject>(true); // Include inactive
+                Debug.Log($"UIManager: Searching through {allObjects.Length} GameObjects for pause menu...");
+                
+                foreach (GameObject obj in allObjects)
+                {
+                    string objName = obj.name.ToLower();
+                    // More specific search - prioritize exact matches
+                    if (objName == "pausemenupanel" || objName == "pause menu panel" || objName == "pausemenu")
+                    {
+                        pauseMenuPanel = obj;
+                        foundCount++;
+                        Debug.Log($"UIManager: Found PauseMenuPanel by exact name match: {obj.name} (Active: {obj.activeInHierarchy})");
+                        break;
+                    }
+                    // Fallback: Look for objects that contain "pause" but exclude buttons
+                    else if (objName.Contains("pause") && objName.Contains("panel") && !objName.Contains("button"))
+                    {
+                        pauseMenuPanel = obj;
+                        foundCount++;
+                        Debug.Log($"UIManager: Found PauseMenuPanel by pattern match: {obj.name} (Active: {obj.activeInHierarchy})");
+                        break;
+                    }
+                }
+                
+                if (pauseMenuPanel == null)
+                {
+                    Debug.LogWarning($"UIManager: PauseMenuPanel not found in scene {currentScene}!");
+                    // List all UI panels found for debugging
+                    Debug.Log("UIManager: Available UI objects:");
+                    foreach (GameObject obj in allObjects)
+                    {
+                        if (obj.name.ToLower().Contains("panel") || obj.name.ToLower().Contains("menu"))
+                        {
+                            Debug.Log($"  - {obj.name} (Active: {obj.activeInHierarchy}, Parent: {(obj.transform.parent ? obj.transform.parent.name : "None")})");
+                        }
+                    }
+                    
+                    // CRITICAL: Create PauseMenuPanel if missing in gameplay
+                    if (currentScene.Contains("Racing") || currentScene.Contains("Gameplay"))
+                    {
+                        Debug.Log("UIManager: Creating missing PauseMenuPanel for gameplay...");
+                        CreatePauseMenuPanel();
+                    }
+                }
+            }
+        }
+        else 
+        { 
+            foundCount++;
+            Debug.Log($"UIManager: PauseMenuPanel already assigned: {pauseMenuPanel.name}");
         }
         
         if (resumeButton == null)
         {
             GameObject resumeButtonObj = GameObject.Find("ResumeButton");
             if (resumeButtonObj != null)
+            {
                 resumeButton = resumeButtonObj.GetComponent<Button>();
+                foundCount++;
+            }
+            else
+            {
+                // Search within PauseMenuPanel if it exists
+                if (pauseMenuPanel != null)
+                {
+                    Transform resumeTransform = pauseMenuPanel.transform.Find("ButtonContainer/ResumeButton");
+                    if (resumeTransform == null)
+                        resumeTransform = pauseMenuPanel.transform.Find("ResumeButton");
+                    
+                    if (resumeTransform != null)
+                    {
+                        resumeButton = resumeTransform.GetComponent<Button>();
+                        if (resumeButton != null) foundCount++;
+                        Debug.Log($"UIManager: Found ResumeButton in PauseMenuPanel hierarchy");
+                    }
+                }
+            }
         }
+        else { foundCount++; }
+        totalChecked++;
         
         if (restartButton == null)
         {
             GameObject restartButtonObj = GameObject.Find("RestartButton");
             if (restartButtonObj != null)
+            {
                 restartButton = restartButtonObj.GetComponent<Button>();
+                foundCount++;
+            }
+            else
+            {
+                // Search within PauseMenuPanel if it exists
+                if (pauseMenuPanel != null)
+                {
+                    Transform restartTransform = pauseMenuPanel.transform.Find("ButtonContainer/RestartButton");
+                    if (restartTransform == null)
+                        restartTransform = pauseMenuPanel.transform.Find("RestartButton");
+                    
+                    if (restartTransform != null)
+                    {
+                        restartButton = restartTransform.GetComponent<Button>();
+                        if (restartButton != null) foundCount++;
+                        Debug.Log($"UIManager: Found RestartButton in PauseMenuPanel hierarchy");
+                    }
+                }
+            }
         }
+        else { foundCount++; } 
+        totalChecked++;
         
         if (mainMenuFromPauseButton == null)
         {
             GameObject mainMenuFromPauseButtonObj = GameObject.Find("MainMenuFromPauseButton");
             if (mainMenuFromPauseButtonObj != null)
+            {
                 mainMenuFromPauseButton = mainMenuFromPauseButtonObj.GetComponent<Button>();
+                foundCount++;
+            }
+            else
+            {
+                // Search within PauseMenuPanel if it exists
+                if (pauseMenuPanel != null)
+                {
+                    Transform mainMenuTransform = pauseMenuPanel.transform.Find("ButtonContainer/MainMenuFromPauseButton");
+                    if (mainMenuTransform == null)
+                        mainMenuTransform = pauseMenuPanel.transform.Find("MainMenuFromPauseButton");
+                    
+                    if (mainMenuTransform != null)
+                    {
+                        mainMenuFromPauseButton = mainMenuTransform.GetComponent<Button>();
+                        if (mainMenuFromPauseButton != null) foundCount++;
+                        Debug.Log($"UIManager: Found MainMenuFromPauseButton in PauseMenuPanel hierarchy");
+                    }
+                }
+            }
         }
+        else { foundCount++; }
+        totalChecked++;
         
         // Find Settings Panel elements
         if (settingsPanel == null)
@@ -648,7 +843,21 @@ public class UIManager : MonoBehaviour
         }
         
         // Final report
-        Debug.Log($"UIManager: UI references refresh completed - Found {foundCount}/{totalChecked} elements");
+        Debug.Log($"UIManager: UI references refresh completed for scene '{currentScene}' - Found {foundCount}/{totalChecked} elements");
+        LogFoundPanels();
+        
+        // Additional verification for critical panels
+        if (currentScene.Contains("Gameplay") || currentScene.Contains("Game"))
+        {
+            if (pauseMenuPanel == null)
+            {
+                Debug.LogError("UIManager: CRITICAL - PauseMenuPanel is null in Gameplay scene!");
+            }
+            if (gameHUDPanel == null)
+            {
+                Debug.LogError("UIManager: CRITICAL - GameHUDPanel is null in Gameplay scene!");
+            }
+        }
         
         if (foundCount < totalChecked)
         {
@@ -656,6 +865,107 @@ public class UIManager : MonoBehaviour
         }
     }
     #endregion
+
+    private void CreatePauseMenuPanel()
+    {
+        Debug.Log("UIManager: Creating PauseMenuPanel...");
+        
+        // Find Canvas
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogError("UIManager: No Canvas found! Cannot create PauseMenuPanel.");
+            return;
+        }
+
+        // Create main panel
+        GameObject pausePanel = new GameObject("PauseMenuPanel");
+        pausePanel.transform.SetParent(canvas.transform, false);
+        
+        // Add Image component for background
+        UnityEngine.UI.Image panelImage = pausePanel.AddComponent<UnityEngine.UI.Image>();
+        panelImage.color = new Color(0, 0, 0, 0.8f); // Semi-transparent black
+
+        // Set RectTransform to fill parent
+        RectTransform panelRect = pausePanel.GetComponent<RectTransform>();
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.one;
+        panelRect.sizeDelta = Vector2.zero;
+        panelRect.anchoredPosition = Vector2.zero;
+
+        // Create button container
+        GameObject buttonContainer = new GameObject("ButtonContainer");
+        buttonContainer.transform.SetParent(pausePanel.transform, false);
+        
+        // Add VerticalLayoutGroup to container
+        UnityEngine.UI.VerticalLayoutGroup layoutGroup = buttonContainer.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
+        layoutGroup.spacing = 20;
+        layoutGroup.childAlignment = TextAnchor.MiddleCenter;
+        layoutGroup.childControlHeight = false;
+        layoutGroup.childControlWidth = false;
+
+        // Set container RectTransform
+        RectTransform containerRect = buttonContainer.GetComponent<RectTransform>();
+        containerRect.anchorMin = new Vector2(0.5f, 0.5f);
+        containerRect.anchorMax = new Vector2(0.5f, 0.5f);
+        containerRect.sizeDelta = new Vector2(200, 300);
+        containerRect.anchoredPosition = Vector2.zero;
+
+        // Create buttons
+        CreatePauseMenuButton(buttonContainer, "ResumeButton", "Resume");
+        CreatePauseMenuButton(buttonContainer, "RestartButton", "Restart");
+        CreatePauseMenuButton(buttonContainer, "MainMenuFromPauseButton", "Main Menu");
+
+        // Initially deactivate the panel
+        pausePanel.SetActive(false);
+
+        // Assign to pauseMenuPanel reference
+        pauseMenuPanel = pausePanel;
+
+        Debug.Log($"✅ UIManager: Created PauseMenuPanel successfully!");
+    }
+
+    private void CreatePauseMenuButton(GameObject parent, string buttonName, string buttonText)
+    {
+        GameObject buttonObj = new GameObject(buttonName);
+        buttonObj.transform.SetParent(parent.transform, false);
+
+        // Add Button component
+        Button button = buttonObj.AddComponent<Button>();
+        UnityEngine.UI.Image buttonImage = buttonObj.AddComponent<UnityEngine.UI.Image>();
+        buttonImage.color = new Color(0.2f, 0.3f, 0.8f, 0.8f); // Blue background
+
+        // Set button size
+        RectTransform buttonRect = buttonObj.GetComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(180, 50);
+
+        // Create text child
+        GameObject textObj = new GameObject("Text");
+        textObj.transform.SetParent(buttonObj.transform, false);
+
+        Text buttonTextComp = textObj.AddComponent<Text>();
+        buttonTextComp.text = buttonText;
+        buttonTextComp.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        buttonTextComp.fontSize = 16;
+        buttonTextComp.color = Color.white;
+        buttonTextComp.alignment = TextAnchor.MiddleCenter;
+
+        // Set text RectTransform to fill button
+        RectTransform textRect = textObj.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.sizeDelta = Vector2.zero;
+        textRect.anchoredPosition = Vector2.zero;
+
+        button.targetGraphic = buttonImage;
+
+        // Assign button references
+        if (buttonName == "ResumeButton") resumeButton = button;
+        else if (buttonName == "RestartButton") restartButton = button;
+        else if (buttonName == "MainMenuFromPauseButton") mainMenuFromPauseButton = button;
+
+        Debug.Log($"UIManager: Created button: {buttonName}");
+    }
 
     #region Public Getters
     public bool IsPaused => isPaused;

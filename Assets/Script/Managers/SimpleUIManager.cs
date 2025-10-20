@@ -71,6 +71,9 @@ public class SimpleUIManager : MonoBehaviour
     {
         RefreshUIReferences();
         SetupButtonListeners();
+        
+        // Initialize UI for current scene on start
+        InitializeUIForCurrentScene();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -84,7 +87,36 @@ public class SimpleUIManager : MonoBehaviour
         yield return new WaitForEndOfFrame();
         RefreshUIReferences();
         SetupButtonListeners();
+        
+        // Automatically show appropriate UI based on current scene
+        InitializeUIForCurrentScene();
+        
         Debug.Log("SimpleUIManager: UI references refreshed for new scene");
+    }
+
+    private void InitializeUIForCurrentScene()
+    {
+        string currentScene = SceneManager.GetActiveScene().name;
+        Debug.Log($"SimpleUIManager: Initializing UI for scene: {currentScene}");
+        
+        if (currentScene.ToLower().Contains("menu") || currentScene.ToLower().Contains("start"))
+        {
+            // Start Menu scene - show main menu
+            ShowMainMenu();
+            Debug.Log("SimpleUIManager: Showing MainMenu for start scene");
+        }
+        else if (currentScene.ToLower().Contains("game") || currentScene.ToLower().Contains("racing"))
+        {
+            // Gameplay scene - show game HUD
+            ShowGameHUD();
+            Debug.Log("SimpleUIManager: Showing GameHUD for gameplay scene");
+        }
+        else
+        {
+            // Unknown scene - default to main menu
+            ShowMainMenu();
+            Debug.Log("SimpleUIManager: Unknown scene, defaulting to MainMenu");
+        }
     }
 
     private void RefreshUIReferences()
@@ -290,7 +322,19 @@ public class SimpleUIManager : MonoBehaviour
     public void ShowGameHUD()
     {
         SetPanelActive(mainMenuPanel, false);
-        SetPanelActive(gameHUDPanel, true);
+        
+        // If GameHUDPanel doesn't exist in gameplay scene, that's OK
+        // The gameplay scene might not have HUD elements yet
+        if (gameHUDPanel != null)
+        {
+            SetPanelActive(gameHUDPanel, true);
+            Debug.Log("SimpleUIManager: GameHUD panel shown");
+        }
+        else
+        {
+            Debug.Log("SimpleUIManager: No GameHUD panel found - gameplay scene may not have HUD UI yet");
+        }
+        
         SetPanelActive(pauseMenuPanel, false);
         SetPanelActive(settingsPanel, false);
         SetPanelActive(gameOverPanel, false);
