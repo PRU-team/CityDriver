@@ -47,8 +47,14 @@ public class Item : MonoBehaviour
                 Instantiate(explosionEffect, transform.position, Quaternion.identity);
 
             // Âm thanh va chạm
-            if (audioSource != null)
-                audioSource.Play();
+            if (hitSound != null)
+            {
+                GameObject tempAudio = new GameObject("TempAudio");
+                AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
+                tempSource.clip = hitSound;
+                tempSource.Play();
+                Destroy(tempAudio, hitSound.length);
+            }
             Debug.Log($"Item picked up: {itemType}");
             switch (itemType)
             {

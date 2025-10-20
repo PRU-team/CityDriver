@@ -73,9 +73,7 @@ public class UIManager : MonoBehaviour
         // Singleton pattern
         if (Instance == null)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            
+            Instance = this;            
             // Subscribe to scene loading events
             SceneManager.sceneLoaded += OnSceneLoaded;
         }

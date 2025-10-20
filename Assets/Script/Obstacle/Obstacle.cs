@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 
 public class Obstacle : MonoBehaviour
 {
@@ -41,7 +42,7 @@ public class Obstacle : MonoBehaviour
             if (GameManager.Instance.isShieldActive)
             {
                 GameManager.Instance.isShieldActive = false; // tắt shield
-                Debug.Log("💥 Obstacle hit absorbed by shield!");
+                Debug.Log(" Obstacle hit absorbed by shield!");
                 Destroy(gameObject); // phá obstacle
                 return;
             }
@@ -57,7 +58,7 @@ public class Obstacle : MonoBehaviour
             if (GameManager.Instance != null)
                 GameManager.Instance.PlayerHit();
 
-            Destroy(gameObject, 0.05f);
+            Destroy(gameObject, hitSound.length + 0.1f);
         }
     }
 

@@ -19,7 +19,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Runtime")]
     public bool isPlaying = true;
-    public bool isPaused = false; // Thêm pause state
     private float currentScrollSpeed;
     private float score = 0f;
 
@@ -28,6 +27,11 @@ public class GameManager : MonoBehaviour
     [Header("Player Protection")]
     public bool isShieldActive = false;
     private float shieldTimer = 0f;
+
+    [Header("Cheats")]
+    public bool isGodMode = false;
+    private string cheatInput = "";
+    private const string GODMODE_CODE = "wwss";
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -81,15 +85,45 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("GameManager.Update: tilemapController is null. Game will not scroll. Assign the TilemapScrollDown reference in the Inspector.", this);
 
         UpdateScore();
-        UpdateShieldTimer(); 
+        UpdateShieldTimer();
+        ListenForCheatCode();
     }
+    private void ListenForCheatCode()
+    {
+        foreach (char c in Input.inputString)
+        {
+            cheatInput += c;
 
+
+            if (cheatInput.Length > GODMODE_CODE.Length)
+                cheatInput = cheatInput.Substring(cheatInput.Length - GODMODE_CODE.Length);
+
+            if (cheatInput.ToLower() == GODMODE_CODE)
+            {
+                ToggleGodMode();
+                cheatInput = "";
+            }
+        }
+    }
+    private void ToggleGodMode()
+    {
+        isGodMode = !isGodMode;
+        string status = isGodMode ? " God Mode ACTIVATED!" : " God Mode DEACTIVATED!";
+        Debug.Log(status);
+        //if (UIManager.Instance != null)
+        //    UIManager.Instance.ShowCheatStatus(isGodMode);
+    }
     public void PlayerHit()
     {
         if (!isPlaying) return;
 
-        currentHearts--;
+        if (isGodMode)
+        {
+            Debug.Log(" Player hit ignored (God Mode active).");
+            return;
+        }
 
+        currentHearts--;
         Debug.Log($" Player bị va chạm! Còn lại {currentHearts}/{maxHearts} tim.");
 
         if (UIManager.Instance != null)
@@ -137,15 +171,7 @@ public class GameManager : MonoBehaviour
     void UpdateScore()
     {
         score += Time.deltaTime * currentScrollSpeed * scoreMultiplier;
-        
-        // Update UI if UIManager exists
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.UpdateScore(score);
-            UIManager.Instance.UpdateSpeed(currentScrollSpeed * 10f); // Convert to km/h display
-        }
     }
-    
     public void ActivateShield(float duration)
     {
         isShieldActive = true;
@@ -157,7 +183,6 @@ public class GameManager : MonoBehaviour
         //if (UIManager.Instance != null)
         //    UIManager.Instance.ShowShield(true);
     }
-    
     private void UpdateShieldTimer()
     {
         if (isShieldActive)
@@ -182,34 +207,8 @@ public class GameManager : MonoBehaviour
             tilemapController.scrollSpeed = 0f;
         else
             Debug.LogWarning("GameManager.GameOver: tilemapController is null when trying to stop scrolling.", this);
-        
+
         Debug.Log($" GAME OVER! Final Score: {Mathf.FloorToInt(score)}");
-        
-        // Show Game Over UI
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowGameOver(score);
-        }
-    }
-    
-    /// <summary>
-    /// Pause game - stop scrolling but keep objects active
-    /// </summary>
-    public void PauseGame()
-    {
-        isPaused = true;
-        Time.timeScale = 0f;
-        Debug.Log("GameManager: Game paused");
-    }
-    
-    /// <summary>
-    /// Resume game - restore normal time and scrolling
-    /// </summary>
-    public void ResumeGame()
-    {
-        isPaused = false;
-        Time.timeScale = 1f;
-        Debug.Log("GameManager: Game resumed");
     }
 
     public float GetScore()
