@@ -107,7 +107,7 @@ MonoBehaviour:
   moveSpeed: 3
   destroyY: -6
   explosionEffect: {fileID: 0}
-  hitSound: {fileID: 0}
+  hitSound: {fileID: 8300000, guid: d44be6dcae0d64618b03990653717fa2, type: 3}
 --- !u!61 &3644854504462373892
 BoxCollider2D:
   m_ObjectHideFlags: 0
