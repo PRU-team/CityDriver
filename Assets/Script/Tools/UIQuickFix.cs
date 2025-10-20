@@ -98,8 +98,17 @@ public class UIQuickFix : MonoBehaviour
         
         if (isGameplay)
         {
-            CreateGameplayUI();
-            Debug.Log("UIQuickFix: Created Gameplay UI elements");
+            // Check if UIManager already exists with DontDestroyOnLoad (persistent UI)
+            UIManager existingUIManager = FindObjectOfType<UIManager>();
+            if (existingUIManager != null && existingUIManager.gameObject.scene.name == "DontDestroyOnLoad")
+            {
+                Debug.Log("UIQuickFix: UIManager with persistent UI detected - skipping gameplay UI creation");
+            }
+            else
+            {
+                CreateGameplayUI();
+                Debug.Log("UIQuickFix: Created Gameplay UI elements");
+            }
         }
         
         if (!isMainMenu && !isGameplay)
@@ -268,9 +277,27 @@ public class UIQuickFix : MonoBehaviour
             pauseRect.pivot = new Vector2(1, 1);
         }
         
-        // Create Pause Menu Panel - better centered and sized
-        if (GameObject.Find("PauseMenuPanel") == null)
+        // Create Pause Menu Panel - only if not found anywhere (including DontDestroyOnLoad)
+        GameObject existingPauseMenu = FindObjectOfType<GameObject>(true)?.name == "PauseMenuPanel" ? 
+            FindObjectOfType<GameObject>(true) : null;
+        
+        // More thorough search for existing PauseMenuPanel
+        if (existingPauseMenu == null)
         {
+            GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
+            foreach (GameObject obj in allObjects)
+            {
+                if (obj.name == "PauseMenuPanel")
+                {
+                    existingPauseMenu = obj;
+                    break;
+                }
+            }
+        }
+        
+        if (existingPauseMenu == null && GameObject.Find("PauseMenuPanel") == null)
+        {
+            Debug.Log("UIQuickFix: Creating new PauseMenuPanel...");
             GameObject pauseMenuPanel = CreatePanel("PauseMenuPanel", new Vector2(500, 600));
             pauseMenuPanel.SetActive(false);
             
@@ -281,6 +308,10 @@ public class UIQuickFix : MonoBehaviour
             CreateButtonWithIcon("ResumeButton", "RESUME", pauseMenuPanel.transform, new Vector2(0, 120), new Vector2(280, 70), resumeButtonIcon);
             CreateButtonWithIcon("RestartButton", "RESTART", pauseMenuPanel.transform, new Vector2(0, 30), new Vector2(280, 70), restartButtonIcon);
             CreateButtonWithIcon("MainMenuFromPauseButton", "MAIN MENU", pauseMenuPanel.transform, new Vector2(0, -60), new Vector2(280, 70), menuButtonIcon);
+        }
+        else
+        {
+            Debug.Log($"UIQuickFix: PauseMenuPanel already exists - {(existingPauseMenu != null ? existingPauseMenu.name : "found by GameObject.Find")}");
         }
         
         // Create Game Over Panel - better centered and sized

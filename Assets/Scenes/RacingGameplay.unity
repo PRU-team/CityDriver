@@ -863,7 +863,7 @@ GameObject:
   - component: {fileID: 130552944}
   - component: {fileID: 130552943}
   m_Layer: 0
-  m_Name: pausemenupanel
+  m_Name: PauseMenuPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4902,6 +4902,7 @@ MonoBehaviour:
   speedBoostMultiplier: 1.5
   scoreMultiplier: 1
   isPlaying: 1
+  isPaused: 0
 --- !u!4 &1440382693
 Transform:
   m_ObjectHideFlags: 0

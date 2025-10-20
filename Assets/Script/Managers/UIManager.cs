@@ -664,12 +664,9 @@ public class UIManager : MonoBehaviour
                         }
                     }
                     
-                    // CRITICAL: Create PauseMenuPanel if missing in gameplay
-                    if (currentScene.Contains("Racing") || currentScene.Contains("Gameplay"))
-                    {
-                        Debug.Log("UIManager: Creating missing PauseMenuPanel for gameplay...");
-                        CreatePauseMenuPanel();
-                    }
+                    // DISABLED: Do not auto-create PauseMenuPanel, use existing one from scene
+                    // The PauseMenuPanel should already exist in the scene hierarchy
+                    Debug.LogError("UIManager: PauseMenuPanel must exist in the scene! Check the scene setup.");
                 }
             }
         }
@@ -686,21 +683,30 @@ public class UIManager : MonoBehaviour
             {
                 resumeButton = resumeButtonObj.GetComponent<Button>();
                 foundCount++;
+                Debug.Log($"UIManager: Found ResumeButton by global search");
             }
             else
             {
                 // Search within PauseMenuPanel if it exists
                 if (pauseMenuPanel != null)
                 {
-                    Transform resumeTransform = pauseMenuPanel.transform.Find("ButtonContainer/ResumeButton");
+                    // Direct child search (based on Unity hierarchy structure)
+                    Transform resumeTransform = pauseMenuPanel.transform.Find("ResumeButton");
                     if (resumeTransform == null)
-                        resumeTransform = pauseMenuPanel.transform.Find("ResumeButton");
+                        resumeTransform = pauseMenuPanel.transform.Find("ButtonContainer/ResumeButton");
                     
                     if (resumeTransform != null)
                     {
                         resumeButton = resumeTransform.GetComponent<Button>();
-                        if (resumeButton != null) foundCount++;
-                        Debug.Log($"UIManager: Found ResumeButton in PauseMenuPanel hierarchy");
+                        if (resumeButton != null) 
+                        {
+                            foundCount++;
+                            Debug.Log($"UIManager: Found ResumeButton in PauseMenuPanel hierarchy: {resumeTransform.name}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("UIManager: ResumeButton not found in PauseMenuPanel hierarchy");
                     }
                 }
             }
@@ -715,21 +721,30 @@ public class UIManager : MonoBehaviour
             {
                 restartButton = restartButtonObj.GetComponent<Button>();
                 foundCount++;
+                Debug.Log($"UIManager: Found RestartButton by global search");
             }
             else
             {
                 // Search within PauseMenuPanel if it exists
                 if (pauseMenuPanel != null)
                 {
-                    Transform restartTransform = pauseMenuPanel.transform.Find("ButtonContainer/RestartButton");
+                    // Direct child search (based on Unity hierarchy structure)
+                    Transform restartTransform = pauseMenuPanel.transform.Find("RestartButton");
                     if (restartTransform == null)
-                        restartTransform = pauseMenuPanel.transform.Find("RestartButton");
+                        restartTransform = pauseMenuPanel.transform.Find("ButtonContainer/RestartButton");
                     
                     if (restartTransform != null)
                     {
                         restartButton = restartTransform.GetComponent<Button>();
-                        if (restartButton != null) foundCount++;
-                        Debug.Log($"UIManager: Found RestartButton in PauseMenuPanel hierarchy");
+                        if (restartButton != null) 
+                        {
+                            foundCount++;
+                            Debug.Log($"UIManager: Found RestartButton in PauseMenuPanel hierarchy: {restartTransform.name}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("UIManager: RestartButton not found in PauseMenuPanel hierarchy");
                     }
                 }
             }
@@ -744,21 +759,38 @@ public class UIManager : MonoBehaviour
             {
                 mainMenuFromPauseButton = mainMenuFromPauseButtonObj.GetComponent<Button>();
                 foundCount++;
+                Debug.Log($"UIManager: Found MainMenuFromPauseButton by global search");
             }
             else
             {
                 // Search within PauseMenuPanel if it exists
                 if (pauseMenuPanel != null)
                 {
-                    Transform mainMenuTransform = pauseMenuPanel.transform.Find("ButtonContainer/MainMenuFromPauseButton");
+                    // Direct child search (based on Unity hierarchy structure)
+                    Transform mainMenuTransform = pauseMenuPanel.transform.Find("MainMenuFromPauseButton");
                     if (mainMenuTransform == null)
-                        mainMenuTransform = pauseMenuPanel.transform.Find("MainMenuFromPauseButton");
+                        mainMenuTransform = pauseMenuPanel.transform.Find("ButtonContainer/MainMenuFromPauseButton");
                     
                     if (mainMenuTransform != null)
                     {
                         mainMenuFromPauseButton = mainMenuTransform.GetComponent<Button>();
-                        if (mainMenuFromPauseButton != null) foundCount++;
-                        Debug.Log($"UIManager: Found MainMenuFromPauseButton in PauseMenuPanel hierarchy");
+                        if (mainMenuFromPauseButton != null) 
+                        {
+                            foundCount++;
+                            Debug.Log($"UIManager: Found MainMenuFromPauseButton in PauseMenuPanel hierarchy: {mainMenuTransform.name}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("UIManager: MainMenuFromPauseButton not found in PauseMenuPanel hierarchy");
+                        
+                        // Debug: List all children of PauseMenuPanel
+                        Debug.Log("UIManager: PauseMenuPanel children:");
+                        for (int i = 0; i < pauseMenuPanel.transform.childCount; i++)
+                        {
+                            Transform child = pauseMenuPanel.transform.GetChild(i);
+                            Debug.Log($"  - Child {i}: {child.name} (Active: {child.gameObject.activeInHierarchy})");
+                        }
                     }
                 }
             }
