@@ -2959,8 +2959,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 29, y: 245}
-  m_SizeDelta: {x: 879.022, y: 172.1643}
+  m_AnchoredPosition: {x: 13, y: 245}
+  m_SizeDelta: {x: 936.053, y: 172.1643}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &650951483
 MonoBehaviour:
@@ -2984,7 +2984,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 8b0ef029d95e84355ace2d2461ef56e5, type: 3}
-    m_FontSize: 180
+    m_FontSize: 120
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 0
@@ -2995,7 +2995,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: CITY DRIVER
+  m_Text: SAIGON CITY DRIVER
 --- !u!222 &650951484
 CanvasRenderer:
   m_ObjectHideFlags: 0
